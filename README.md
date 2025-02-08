@@ -1,1 +1,1 @@
-# alzheimer-remediation-app
+# MEMORA - An Alzheimer Remediation App
