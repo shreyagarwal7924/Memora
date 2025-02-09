@@ -1,9 +1,19 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   padding: 2rem;
   text-align: center;
+  background: linear-gradient(180deg, #fde2e4 0%, #fad2e1 100%);
 }
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 
 .logo {
   height: 6em;

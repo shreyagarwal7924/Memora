@@ -12,7 +12,7 @@ const Dashboard = () => {
       left: 0,
       width: '100%',
       height: '60px',
-      backgroundColor: '#fff',
+      background: "linear-gradient(180deg, #fceeee 0%, #f8d7e0 100%)",
       borderTop: '1px solid #ccc',
       display: 'flex',
       justifyContent: 'space-around',
@@ -28,7 +28,7 @@ const Dashboard = () => {
       sx={{
         fontSize: '0.9rem',
         textTransform: 'none',
-        color: 'blue',
+        color: 'Black',
       }}
     >
       Upload Pic Option
@@ -40,7 +40,7 @@ const Dashboard = () => {
       sx={{
         fontSize: '0.9rem',
         textTransform: 'none',
-        color: 'blue',
+        color: 'Black',
       }}
     >
       Profile

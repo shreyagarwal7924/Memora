@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import ImageMarker from 'react-image-marker';
@@ -5,6 +7,7 @@ import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import Dashboard from './Dashboard';
+import axios from 'axios';
 // ------------------------------
 // TagPopup Component
 // ------------------------------
@@ -94,7 +97,7 @@ const CustomMarker = ({ marker }) => {
 // FamilyView Component
 // ------------------------------
 const FamilyView = () => {
-  const navigate = useNavigate();
+//   const navigate = useNavigate();
 
   // Workflow States
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
@@ -178,30 +181,79 @@ const FamilyView = () => {
 
   const handleTagSubmit = () => {
     if (!tagInput || !selectedTagType) return;
+
     setUploadedPhotos((prevPhotos) => {
-      const updatedPhotos = [...prevPhotos];
-      const currentPhoto = updatedPhotos[selectedPhotoIndex];
-      const newTag = {
-        id: `${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-        type: selectedTagType,
-        name: tagInput,
-        x: popupMarker.left,
-        y: popupMarker.top,
-      };
-      currentPhoto.tags.push(newTag);
-      return updatedPhotos;
+        const updatedPhotos = [...prevPhotos];
+        const currentPhoto = updatedPhotos[selectedPhotoIndex];
+
+        if (!currentPhoto.tags) {
+            currentPhoto.tags = []; // Ensure tags array exists
+        }
+
+        const newTag = {
+            type: selectedTagType,
+            name: tagInput,
+            x: popupMarker.left, 
+            y: popupMarker.top,
+        };
+
+        // Ensure tag is not duplicated
+        if (!currentPhoto.tags.some(tag => JSON.stringify(tag) === JSON.stringify(newTag))) {
+            currentPhoto.tags.push(newTag);
+        }
+
+        return updatedPhotos;
     });
+
     // Clear popup state
     setShowTagPopup(false);
     setPopupMarker(null);
     setTagInput('');
     setSelectedTagType('');
-  };
+};
 
-  const handleFinishProcess = () => {
-    setIsTagging(false); // Close tagging view
+
+const handleFinishProcess = async () => {
+    setIsTagging(false);
     setProcessComplete(true);
-  };
+
+    try {
+        for (const photo of uploadedPhotos) {
+            const formData = new FormData();
+            
+            // Append actual file object
+            formData.append("file", photo.file); 
+
+            // Append metadata
+            formData.append("place", photo.place);
+            formData.append("time", photo.time);
+            
+            // Ensure `tags` are correctly formatted as JSON string
+            const formattedTags = photo.tags.length > 0 ? JSON.stringify(photo.tags) : "[]";
+            formData.append("tags", formattedTags);
+
+            console.log("Uploading image with metadata:", formData);
+
+            // Send the multipart request
+            const response = await axios.post("http://localhost:6001/upload", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.status !== 200) {
+                throw new Error("Failed to store image data");
+            }
+
+            console.log("Image uploaded successfully:", response.data);
+        }
+
+        setIsTagging(false);
+        setProcessComplete(true);
+    } catch (error) {
+        console.error("Error storing images:", error);
+    }
+};
 
   const handleBackToFinalization = () => {
     setIsTagging(false);
@@ -223,20 +275,38 @@ const FamilyView = () => {
   );
 
   const renderUploadSection = () => (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '80vh',
+        paddingLeft: "35px"
+  }}>
       <form onSubmit={(e) => e.preventDefault()}>
-        <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ textAlign: 'center', mr: 7, mb: 3, fontWeight: 'bold' }}>
           Upload Photo(s)
         </Typography>
         <Box
           sx={{
-            mt: 2,
             display: 'flex',
-            justifyContent: 'center',
-            p: 3,
-            border: '2px dashed #ccc',
-            borderRadius: '8px',
-            cursor: 'pointer',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          p: 4,
+          border: '3px dashed #ccc',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          width: '80vw',
+          maxWidth: '500px',
+          height: '250px',
+          backgroundColor: '#fdf9f9',
+          transition: 'all 0.3s ease-in-out',
+          '&:hover': {
+            backgroundColor: '#f7e4e4',
+          },
+          marginLeft: 'auto', 
+          marginRight: '10vw',
           }}
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
         >
@@ -255,16 +325,19 @@ const FamilyView = () => {
   const renderFinalizationView = () => (
     <Box
       sx={{
-        p: 2,
-        overflowY: 'auto',
-        maxHeight: 'calc(100vh - 100px)',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh", 
+        width: "100vw",
       }}
     >
       <Typography variant="h6" sx={{ mb: 2 }}>
         Finalize Upload: Provide Place and Time
       </Typography>
       {uploadedPhotos.map((photo, index) => (
-        <Paper key={photo.id} elevation={2} sx={{ mb: 3, p: 2, borderRadius: '8px' }}>
+        <Paper key={photo.id} elevation={2} sx={{ mb: 3, p: 2, borderRadius: '8px', backgroundColor: "#fad2e1", }}>
           <img
             src={photo.preview}
             alt={`Photo ${index + 1}`}
@@ -275,7 +348,7 @@ const FamilyView = () => {
               borderRadius: '8px',
             }}
           />
-          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+          <Box sx={{ mt: 1, display: 'flex', gap: 1}}>
             <input
               type="text"
               placeholder="Place"
@@ -332,7 +405,7 @@ const FamilyView = () => {
   const renderTaggingView = () => {
     const currentPhoto = uploadedPhotos[selectedPhotoIndex];
     if (!currentPhoto) return null;
-
+  
     const markers = currentPhoto.tags
       .filter((tag) => tag.x !== undefined && tag.y !== undefined)
       .map((tag) => ({
@@ -341,82 +414,111 @@ const FamilyView = () => {
         id: tag.id,
         name: tag.name,
       }));
-
+  
     return (
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
-        <Box
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "#fff",
+        }}
+      >
+        <Paper
+          elevation={3}
           sx={{
-            p: 2,
-            backgroundColor: 'white',
-            borderBottom: '1px solid #ccc',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            display: "flex",
+            flexDirection: "column",
+            width: "80vw",
+            maxWidth: "500px",
+            height: "85vh",
+            backgroundColor: "#fde2e4", // Soft pink background
+            borderRadius: "12px",
+            overflow: "hidden",
           }}
         >
-          <Button
-            onClick={handleBackToFinalization}
-            variant="outlined"
-            size="small"
+          {/* Header Section */}
+          <Box
             sx={{
-              textTransform: 'none',
-              borderColor: '#ccc',
-              color: '#333',
+              p: 2,
+              backgroundColor: "white",
+              borderBottom: "1px solid #ccc",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            Back
-          </Button>
-          <Typography variant="h6">Tag Image</Typography>
-          <Typography variant="subtitle2">
-            Photo {selectedPhotoIndex + 1} of {uploadedPhotos.length}
-          </Typography>
-        </Box>
-        <Box sx={{ flex: 1, position: 'relative' }}>
-          <ImageMarker
-            src={currentPhoto.preview}
-            markers={markers}
-            onAddMarker={handleAddMarker}
-            markerComponent={({ marker }) => <CustomMarker marker={marker} />}
-          />
-          {showTagPopup && popupMarker && (
-            <TagPopup
-              marker={popupMarker}
-              selectedTagType={selectedTagType}
-              setSelectedTagType={setSelectedTagType}
-              tagInput={tagInput}
-              setTagInput={setTagInput}
-              handleTagSubmit={handleTagSubmit}
+            <Button
+              onClick={handleBackToFinalization}
+              variant="outlined"
+              size="small"
+              sx={{
+                textTransform: "none",
+                borderColor: "#ccc",
+                color: "#333",
+              }}
+            >
+              Back
+            </Button>
+            <Typography variant="h6">Tag Image</Typography>
+            <Typography variant="subtitle2">
+              Photo {selectedPhotoIndex + 1} of {uploadedPhotos.length}
+            </Typography>
+          </Box>
+  
+          {/* Image Tagging Section */}
+          <Box sx={{ flex: 1, position: "relative", overflow: "hidden" }}>
+            <ImageMarker
+              src={currentPhoto.preview}
+              markers={markers}
+              onAddMarker={handleAddMarker}
+              markerComponent={({ marker }) => <CustomMarker marker={marker} />}
             />
-          )}
-        </Box>
-        <Box sx={{ p: 2, backgroundColor: '#f9f9f9', borderTop: '1px solid #ccc' }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Tagged People:
-          </Typography>
-          <ul>
-            {currentPhoto.tags
-              .filter((tag) => tag.type === 'person')
-              .map((tag) => (
-                <li key={tag.id}>{tag.name}</li>
-              ))}
-          </ul>
-          <Button
-            variant="contained"
-            onClick={handleFinishProcess}
-            sx={{
-              backgroundColor: 'blue',
-              color: 'white',
-              mt: 2,
-              width: '100%',
-              textTransform: 'none',
-            }}
-          >
-            Upload & Finish
-          </Button>
-        </Box>
+            {showTagPopup && popupMarker && (
+              <TagPopup
+                marker={popupMarker}
+                selectedTagType={selectedTagType}
+                setSelectedTagType={setSelectedTagType}
+                tagInput={tagInput}
+                setTagInput={setTagInput}
+                handleTagSubmit={handleTagSubmit}
+              />
+            )}
+          </Box>
+  
+          {/* Footer Section */}
+          <Box sx={{ p: 2, backgroundColor: "#f9f9f9", borderTop: "1px solid #ccc" }}>
+            <Typography variant="subtitle1" sx={{ mb: 1, textAlign: "center" }}>
+              Tagged People:
+            </Typography>
+            <ul style={{ textAlign: "center", padding: 0 }}>
+              {currentPhoto.tags
+                .filter((tag) => tag.type === "person")
+                .map((tag) => (
+                  <li key={tag.id}>{tag.name}</li>
+                ))}
+            </ul>
+            <Button
+              variant="contained"
+              onClick={handleFinishProcess}
+              sx={{
+                backgroundColor: "blue",
+                color: "white",
+                mt: 2,
+                width: "100%",
+                textTransform: "none",
+              }}
+            >
+              Upload & Finish
+            </Button>
+          </Box>
+        </Paper>
       </Box>
     );
   };
+  
 
   const renderFinalScreen = () => (
     <Box sx={{ p: 2, textAlign: 'center' }}>
@@ -427,20 +529,13 @@ const FamilyView = () => {
     </Box>
   );
 
-  // ------------------------------
-  // Bottom Dashboard Component
-  // ------------------------------
-
-  // ------------------------------
-  // Main Render Logic
-  // ------------------------------
   return (
     <Box
       sx={{
         position: 'relative',
         minHeight: '100vh',
         pb: '70px', // Extra bottom padding for the dashboard
-        backgroundColor: '#fff',
+        background: "white",
         // CSS media query for mobile styling
         '@media (max-width:600px)': {
           fontSize: '0.9rem',
@@ -460,3 +555,4 @@ const FamilyView = () => {
 };
 
 export default FamilyView;
+
