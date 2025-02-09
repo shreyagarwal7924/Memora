@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import ImageMarker from 'react-image-marker';
 import { Upload } from 'lucide-react';
-
-// --- TagPopup component ---
-// This component renders a popup (via a portal) at the marker position,
-// allowing you to select a tag type (only "person" in this example) and enter a name.
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Typography, Paper } from '@mui/material';
+import Dashboard from './Dashboard';
+// ------------------------------
+// TagPopup Component
+// ------------------------------
 const TagPopup = ({
   marker,
   selectedTagType,
@@ -24,41 +26,51 @@ const TagPopup = ({
         background: 'white',
         padding: '10px',
         border: '1px solid #ccc',
+        borderRadius: '4px',
         zIndex: 1000,
+        minWidth: '120px',
       }}
     >
-      <div style={{ marginBottom: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+      <Typography variant="subtitle2" sx={{ textAlign: 'center', fontWeight: 'bold', mb: 1 }}>
         Select Tag Type
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '8px' }}>
-        <button onClick={() => setSelectedTagType('person')}>Person</button>
-      </div>
+      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+        <Button
+          size="small"
+          variant={selectedTagType === 'person' ? 'contained' : 'outlined'}
+          onClick={() => setSelectedTagType('person')}
+        >
+          Person
+        </Button>
+      </Box>
       <input
         type="text"
         value={tagInput}
         onChange={(e) => setTagInput(e.target.value)}
         placeholder="Enter name"
-        style={{ width: '100%', padding: '4px', marginBottom: '8px' }}
-      />
-      <button
-        onClick={handleTagSubmit}
         style={{
           width: '100%',
           padding: '4px',
-          backgroundColor: 'blue',
-          color: 'white',
+          marginBottom: '8px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
         }}
+      />
+      <Button
+        onClick={handleTagSubmit}
+        variant="contained"
+        style={{ width: '100%', padding: '4px', backgroundColor: 'blue', color: 'white' }}
       >
         Submit Tag
-      </button>
+      </Button>
     </div>,
     document.body
   );
 };
 
-// --- CustomMarker component ---
-// Displays a small blue dot at the marker location.
-// A defensive check ensures that if marker is undefined, nothing is rendered.
+// ------------------------------
+// CustomMarker Component
+// ------------------------------
 const CustomMarker = ({ marker }) => {
   if (!marker) return null;
   return (
@@ -78,15 +90,13 @@ const CustomMarker = ({ marker }) => {
   );
 };
 
-// --- Main FamilyView component ---
+// ------------------------------
+// FamilyView Component
+// ------------------------------
 const FamilyView = () => {
-  // Workflow states:
-  // - uploadedPhotos holds an array of photo objects.
-  // - uploadComplete is true once photos are uploaded.
-  // - finalized is true once place & time have been provided.
-  // - isTagging indicates whether we're in tagging mode for a specific photo.
-  // - processComplete indicates that the overall process is finished.
-  // - selectedPhotoIndex indicates which photo is currently being tagged.
+  const navigate = useNavigate();
+
+  // Workflow States
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [finalized, setFinalized] = useState(false);
@@ -94,20 +104,22 @@ const FamilyView = () => {
   const [processComplete, setProcessComplete] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
 
-  // Tagging states (for the image marker):
+  // Tagging States
   const [popupMarker, setPopupMarker] = useState(null);
   const [showTagPopup, setShowTagPopup] = useState(false);
   const [selectedTagType, setSelectedTagType] = useState('');
   const [tagInput, setTagInput] = useState('');
 
+  // Ref for file input
   const fileInputRef = useRef(null);
 
-  // --- 1. File Upload ---
-  // Users can upload photos (only once). Once photos are selected, the file input is hidden.
+  // ------------------------------
+  // 1. File Upload (Only once)
+  // ------------------------------
   const handleFileSelect = async (event) => {
+    if (uploadComplete) return; // Prevent re-uploading
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    if (uploadComplete) return; // prevent re-uploading
 
     const newPhotos = await Promise.all(
       Array.from(files).map(async (file) => {
@@ -125,11 +137,12 @@ const FamilyView = () => {
     );
     setUploadedPhotos(newPhotos);
     setUploadComplete(true);
-    event.target.value = ''; // reset file input
+    event.target.value = ''; // Reset file input
   };
 
-  // --- 2. Finalize Upload (Place & Time) ---
-  // Users enter the place and time for each photo.
+  // ------------------------------
+  // 2. Finalization (Place & Time)
+  // ------------------------------
   const handlePlaceChange = (index, newPlace) => {
     setUploadedPhotos((prevPhotos) => {
       const updatedPhotos = [...prevPhotos];
@@ -150,28 +163,24 @@ const FamilyView = () => {
     setFinalized(true);
   };
 
-  // --- 3. Tagging ---
-  // When a user clicks the "Tag the people" button, we enter tagging mode.
+  // ------------------------------
+  // 3. Tagging Functions
+  // ------------------------------
   const handleEditTags = (index) => {
     setSelectedPhotoIndex(index);
     setIsTagging(true);
   };
 
-  // When the user clicks on the image in tagging mode, this function is called
-  // to add a marker.
   const handleAddMarker = (marker) => {
-    console.log('Marker added (percentages):', marker);
     setPopupMarker(marker);
     setShowTagPopup(true);
   };
 
-  // When the user clicks "Submit Tag" in the popup, add the tag to the current photo.
   const handleTagSubmit = () => {
     if (!tagInput || !selectedTagType) return;
     setUploadedPhotos((prevPhotos) => {
       const updatedPhotos = [...prevPhotos];
       const currentPhoto = updatedPhotos[selectedPhotoIndex];
-      // Generate a unique tag ID by combining Date.now() with a random number.
       const newTag = {
         id: `${Date.now()}_${Math.floor(Math.random() * 10000)}`,
         type: selectedTagType,
@@ -182,77 +191,80 @@ const FamilyView = () => {
       currentPhoto.tags.push(newTag);
       return updatedPhotos;
     });
-    // Clear popup state so that the popup disappears.
+    // Clear popup state
     setShowTagPopup(false);
     setPopupMarker(null);
     setTagInput('');
     setSelectedTagType('');
   };
 
-  // When the user clicks "Upload & Finish" in the tagging view, mark the process complete.
   const handleFinishProcess = () => {
+    setIsTagging(false); // Close tagging view
     setProcessComplete(true);
   };
 
-  // --- Render Sections ---
+  const handleBackToFinalization = () => {
+    setIsTagging(false);
+    setSelectedPhotoIndex(null);
+  };
 
-  // 1. File Upload Section
-  const renderUploadSection = () => (
-    <div style={{ padding: '16px' }}>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <label>
-          <span>Upload Photo(s)</span>
-          <div
-            style={{
-              marginTop: '16px',
-              display: 'flex',
-              justifyContent: 'center',
-              padding: '24px',
-              border: '2px dashed #ccc',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-            onClick={() => fileInputRef.current && fileInputRef.current.click()}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <Upload style={{ height: 48, width: 48, color: '#ccc' }} />
-              <div style={{ color: '#666' }}>
-                <span style={{ color: 'blue' }}>Click to upload</span>
-              </div>
-              <p style={{ fontSize: '12px', color: '#999' }}>
-                PNG, JPG, GIF up to 10MB each
-              </p>
-            </div>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileSelect}
-            style={{ display: 'none' }}
-          />
-        </label>
-      </form>
-    </div>
+  // ------------------------------
+  // Render Helper Functions
+  // ------------------------------
+  const renderHiddenFileInput = () => (
+    <input
+      ref={fileInputRef}
+      type="file"
+      multiple
+      accept="image/*"
+      onChange={handleFileSelect}
+      style={{ display: 'none' }}
+    />
   );
 
-  // 2. Finalization Section (Place & Time)
-  // This view shows each uploaded photo with inputs for Place and Time.
-  // It also displays (optionally) any submitted tags below the image.
-  const renderFinalizationView = () => (
-    <div style={{ padding: '16px', overflowY: 'auto', maxHeight: 'calc(100vh - 100px)' }}>
-      <h3>Finalize Upload: Provide Place and Time</h3>
-      {uploadedPhotos.map((photo, index) => (
-        <div
-          key={photo.id}
-          style={{
-            marginBottom: '24px',
-            border: '1px solid #ccc',
-            padding: '8px',
+  const renderUploadSection = () => (
+    <Box sx={{ p: 2 }}>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
+          Upload Photo(s)
+        </Typography>
+        <Box
+          sx={{
+            mt: 2,
+            display: 'flex',
+            justifyContent: 'center',
+            p: 3,
+            border: '2px dashed #ccc',
             borderRadius: '8px',
+            cursor: 'pointer',
           }}
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
         >
+          <Box sx={{ textAlign: 'center' }}>
+            <Upload size={48} color="#ccc" />
+            <Typography sx={{ color: 'blue', mt: 1 }}>Click to upload</Typography>
+            <Typography variant="caption" sx={{ color: '#999' }}>
+              PNG, JPG, GIF up to 10MB each
+            </Typography>
+          </Box>
+        </Box>
+      </form>
+    </Box>
+  );
+
+  const renderFinalizationView = () => (
+    <Box
+      sx={{
+        p: 2,
+        overflowY: 'auto',
+        maxHeight: 'calc(100vh - 100px)',
+      }}
+    >
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Finalize Upload: Provide Place and Time
+      </Typography>
+      {uploadedPhotos.map((photo, index) => (
+        <Paper key={photo.id} elevation={2} sx={{ mb: 3, p: 2, borderRadius: '8px' }}>
           <img
             src={photo.preview}
             alt={`Photo ${index + 1}`}
@@ -263,14 +275,14 @@ const FamilyView = () => {
               borderRadius: '8px',
             }}
           />
-          <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
             <input
               type="text"
               placeholder="Place"
               value={photo.place}
               onChange={(e) => handlePlaceChange(index, e.target.value)}
               disabled={finalized}
-              style={{ flex: 1, padding: '4px' }}
+              style={{ flex: 1, padding: '4px', border: '1px solid #ccc', borderRadius: '4px' }}
             />
             <input
               type="text"
@@ -278,53 +290,31 @@ const FamilyView = () => {
               value={photo.time}
               onChange={(e) => handleTimeChange(index, e.target.value)}
               disabled={finalized}
-              style={{ flex: 1, padding: '4px' }}
+              style={{ flex: 1, padding: '4px', border: '1px solid #ccc', borderRadius: '4px' }}
             />
-          </div>
-          <div style={{ marginTop: '8px' }}>
+          </Box>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
             {finalized ? (
-              <button
+              <Button
+                variant="contained"
                 onClick={() => handleEditTags(index)}
-                style={{
-                  padding: '8px',
-                  background: 'blue',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
+                sx={{ backgroundColor: 'blue', color: 'white' }}
               >
                 Tag the people
-              </button>
+              </Button>
             ) : (
-              index === 0 && (
-                <button
-                  onClick={handleFinalizeUpload}
-                  style={{
-                    padding: '8px',
-                    background: 'green',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Finalize Upload
-                </button>
-              )
+              <Button
+                variant="contained"
+                onClick={handleFinalizeUpload}
+                sx={{ backgroundColor: 'green', color: 'white' }}
+              >
+                Finalize Upload
+              </Button>
             )}
-          </div>
-          {/* Optional: Display tag list in finalization view */}
+          </Box>
           {photo.tags.length > 0 && (
-            <div
-              style={{
-                marginTop: '8px',
-                background: '#f0f0f0',
-                padding: '8px',
-                borderRadius: '4px',
-              }}
-            >
-              <h4>Tagged People:</h4>
+            <Box sx={{ mt: 2, p: 1, backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+              <Typography variant="subtitle2">Tagged People:</Typography>
               <ul>
                 {photo.tags
                   .filter((tag) => tag.type === 'person')
@@ -332,17 +322,13 @@ const FamilyView = () => {
                     <li key={tag.id}>{tag.name}</li>
                   ))}
               </ul>
-            </div>
+            </Box>
           )}
-        </div>
+        </Paper>
       ))}
-    </div>
+    </Box>
   );
 
-  // 3. Tagging View
-  // In tagging mode, the selected photo is shown with markers.
-  // Below the image, a list of submitted tag names (for type "person") is rendered.
-  // A button ("Upload & Finish") completes the process.
   const renderTaggingView = () => {
     const currentPhoto = uploadedPhotos[selectedPhotoIndex];
     if (!currentPhoto) return null;
@@ -357,22 +343,35 @@ const FamilyView = () => {
       }));
 
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
-        <div
-          style={{
-            padding: '16px',
-            background: 'white',
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
+        <Box
+          sx={{
+            p: 2,
+            backgroundColor: 'white',
             borderBottom: '1px solid #ccc',
             display: 'flex',
             justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
-          <h2>Tag Image</h2>
-          <span>
+          <Button
+            onClick={handleBackToFinalization}
+            variant="outlined"
+            size="small"
+            sx={{
+              textTransform: 'none',
+              borderColor: '#ccc',
+              color: '#333',
+            }}
+          >
+            Back
+          </Button>
+          <Typography variant="h6">Tag Image</Typography>
+          <Typography variant="subtitle2">
             Photo {selectedPhotoIndex + 1} of {uploadedPhotos.length}
-          </span>
-        </div>
-        <div style={{ flex: 1, position: 'relative' }}>
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, position: 'relative' }}>
           <ImageMarker
             src={currentPhoto.preview}
             markers={markers}
@@ -389,9 +388,11 @@ const FamilyView = () => {
               handleTagSubmit={handleTagSubmit}
             />
           )}
-        </div>
-        <div style={{ padding: '16px', background: '#f9f9f9' }}>
-          <h3>Tagged People:</h3>
+        </Box>
+        <Box sx={{ p: 2, backgroundColor: '#f9f9f9', borderTop: '1px solid #ccc' }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            Tagged People:
+          </Typography>
           <ul>
             {currentPhoto.tags
               .filter((tag) => tag.type === 'person')
@@ -399,47 +400,63 @@ const FamilyView = () => {
                 <li key={tag.id}>{tag.name}</li>
               ))}
           </ul>
-        </div>
-        <div style={{ padding: '8px', textAlign: 'center' }}>
-          <button
+          <Button
+            variant="contained"
             onClick={handleFinishProcess}
-            style={{
-              padding: '8px 16px',
-              background: 'blue',
+            sx={{
+              backgroundColor: 'blue',
               color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
+              mt: 2,
+              width: '100%',
+              textTransform: 'none',
             }}
           >
             Upload & Finish
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
     );
   };
 
-  // Final screen after the process is complete.
   const renderFinalScreen = () => (
-    <div style={{ padding: '16px', textAlign: 'center' }}>
-      <h2>Upload Complete!</h2>
-      <p>Your photos and tags have been successfully uploaded.</p>
-    </div>
+    <Box sx={{ p: 2, textAlign: 'center' }}>
+      <Typography variant="h5">Upload Complete!</Typography>
+      <Typography variant="body1" sx={{ mt: 1 }}>
+        Your photos and tags have been successfully uploaded.
+      </Typography>
+    </Box>
   );
 
-  // --- Main render logic ---
-  if (!uploadComplete) {
-    return <div>{renderUploadSection()}</div>;
-  } else if (!finalized) {
-    return <div>{renderFinalizationView()}</div>;
-  } else if (isTagging) {
-    return <div>{renderTaggingView()}</div>;
-  } else if (processComplete) {
-    return <div>{renderFinalScreen()}</div>;
-  } else {
-    // Default: show finalization view with "Tag the people" buttons.
-    return <div>{renderFinalizationView()}</div>;
-  }
+  // ------------------------------
+  // Bottom Dashboard Component
+  // ------------------------------
+
+  // ------------------------------
+  // Main Render Logic
+  // ------------------------------
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        pb: '70px', // Extra bottom padding for the dashboard
+        backgroundColor: '#fff',
+        // CSS media query for mobile styling
+        '@media (max-width:600px)': {
+          fontSize: '0.9rem',
+        },
+      }}
+    >
+      {renderHiddenFileInput()}
+      {!uploadComplete && renderUploadSection()}
+      {uploadComplete && !finalized && renderFinalizationView()}
+      {uploadComplete && finalized && isTagging && renderTaggingView()}
+      {uploadComplete && finalized && processComplete && renderFinalScreen()}
+      {/* If finalized but not tagging or finished, show finalization view */}
+      {uploadComplete && finalized && !isTagging && !processComplete && renderFinalizationView()}
+      <Dashboard />
+    </Box>
+  );
 };
 
 export default FamilyView;
