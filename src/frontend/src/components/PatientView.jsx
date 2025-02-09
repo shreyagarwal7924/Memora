@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Paper } from "@mui/material";
 import { ArrowDownward } from "@mui/icons-material";
+// (Optionally, import axios if you use it for real API calls)
+// import axios from "axios";
 
-// Mock feed data:
+// ---------------------------------------------------------------------
+// MOCK FEED DATA
+// ---------------------------------------------------------------------
 const mockFeed = [
   {
     id: 1,
@@ -44,8 +48,8 @@ const mockFeed = [
   {
     id: 4,
     image:
-      "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=800&auto=format&fit=crop",
-    caption: "Family picnic at the park",
+      "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBDMLX6I97GJI6rPoTILUs7bfMJRV1iTxFC8TvZWTUq6f3_NkGV2QdCqdr1LdtlR8YRr8oDGON2XbDA2ABKN9OJiN8fzCPTgFdKt4Jx6eMeA4o6jCBfYiICZVhelZ4eP3RzhAcPHUXI5tsdAiWFudIG51JQiDpOLAebq5CcPcmUw3sxwUahHbMUj_u3g/s1801/IMG_4748.jpeg",
+    caption: "Family.",
     date: "2023-06-15",
     tags: {
       people: ["Alice", "John", "Sarah"],
@@ -56,7 +60,7 @@ const mockFeed = [
   {
     id: 5,
     image:
-      "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?w=800&auto=format&fit=crop",
+      "https://www.kohphoto.com/wp-content/uploads/2019/12/U00A0103-1.jpg",
     caption: "Birthday celebration",
     date: "2023-07-20",
     tags: {
@@ -68,7 +72,7 @@ const mockFeed = [
   {
     id: 6,
     image:
-      "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop",
+      "https://i.ytimg.com/vi/4PpCRsvlMiY/maxresdefault.jpg",
     caption: "Summer vacation at the beach",
     date: "2023-08-10",
     tags: {
@@ -77,33 +81,148 @@ const mockFeed = [
       events: ["Vacation"],
     },
   },
+  {
+    id: 7,
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-NkcceqngBjtG0giIKl4iTgR1HQmzfn8o095xewc5NNVm6XqYKl3gsxZ5t_hKNDRUc90&usqp=CAU",
+    caption: "Family dinner",
+    date: "2023-08-21",
+    tags: {
+        people: ["Alice", "Bob"],
+        places: ["Home"],
+        events: ["Dinner"]
+    }
+  }
 ];
 
+// ---------------------------------------------------------------------
+// UTILITY FUNCTIONS
+// ---------------------------------------------------------------------
+// A simple shuffle helper (in-place)
+function shuffle(array) {
+  let currentIndex = array.length,
+    randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+  return array;
+}
+
+/**
+ * Generates a single quiz question based on the image's tags.
+ * Chooses one random category (people/places/events) and selects a random correct answer.
+ * Then it builds four options (one correct, three others drawn from a predefined list).
+ */
+function generateSingleQuiz(imageData) {
+  // Choose a random tag type among those available.
+  const tagTypes = Object.keys(imageData.tags).filter(
+    (key) => imageData.tags[key] && imageData.tags[key].length > 0
+  );
+  const randomTagType =
+    tagTypes[Math.floor(Math.random() * tagTypes.length)];
+  const tagValues = imageData.tags[randomTagType];
+  const correctAnswer =
+    tagValues[Math.floor(Math.random() * tagValues.length)];
+
+  let questionText;
+  if (randomTagType === "people") {
+    questionText = "Who is this person?";
+  } else if (randomTagType === "places") {
+    questionText = "Where is this place?";
+  } else if (randomTagType === "events") {
+    questionText = "What event is this?";
+  }
+
+  // Predefined sample options for each category.
+  const sampleOptions = {
+    people: ["Alice", "John", "Sarah", "Emily", "David", "Bob", "Michael", "Anna"],
+    places: ["Park", "Home", "Beach", "Restaurant", "Museum", "Office"],
+    events: ["Picnic", "60th Birthday", "Vacation", "Concert", "Festival", "Meeting"],
+  };
+
+  let options = [correctAnswer];
+  const incorrectOptions = sampleOptions[randomTagType].filter(
+    (opt) => opt !== correctAnswer
+  );
+  shuffle(incorrectOptions);
+  options = options.concat(incorrectOptions.slice(0, 3));
+  options = shuffle(options);
+  return { question: questionText, correctAnswer, options };
+}
+
+// ---------------------------------------------------------------------
+// PATIENT VIEW COMPONENT
+// ---------------------------------------------------------------------
 const PatientView = () => {
+  // currentIndex controls which feed item is visible
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef(null);
   const isScrolling = useRef(false);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  // -----------------------
+  // QUIZ STATE
+  // -----------------------
+  // showQuiz determines if the quiz overlay is visible
+  const [showQuiz, setShowQuiz] = useState(false);
+  // quizQuestion holds the current quiz (question, correct answer, options)
+  const [quizQuestion, setQuizQuestion] = useState(null);
+  // selectedAnswer holds the user’s current selection
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  // feedback holds a message if the answer was incorrect (or could be used to celebrate success)
+  const [feedback, setFeedback] = useState("");
+  // Track which quiz groups have been answered so that the same quiz is not re-triggered.
+  // We group images in batches of 3. (Group 0 = images 0–2, Group 1 = images 3–5, etc.)
+  const [answeredQuizGroups, setAnsweredQuizGroups] = useState([]);
+
+  // -------------------------------------------------------------------
+  // TRIGGER THE QUIZ: whenever currentIndex hits a multiple of 3 (and not 0),
+  // trigger a quiz if that group hasn’t already been answered.
+  // In this example, we base the quiz question on the last image of the previous group.
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    if (currentIndex > 0 && currentIndex % 3 === 0) {
+      const quizGroupIndex = currentIndex / 3 - 1;
+      if (!answeredQuizGroups.includes(quizGroupIndex)) {
+        const imageData = mockFeed[currentIndex - 1];
+        const quiz = generateSingleQuiz(imageData);
+        setQuizQuestion(quiz);
+        setShowQuiz(true);
+        setSelectedAnswer(null);
+        setFeedback("");
+      }
+    } else {
+      setShowQuiz(false);
+    }
+  }, [currentIndex, answeredQuizGroups]);
+
+  // -------------------------------------------------------------------
+  // SCROLL EVENT HANDLER
+  // -------------------------------------------------------------------
   useEffect(() => {
     const handleScroll = (event) => {
+      // If the quiz is active, block any scrolling
+      if (showQuiz) {
+        event.preventDefault();
+        return;
+      }
       if (isScrolling.current) return;
 
       event.preventDefault();
       isScrolling.current = true;
 
-      // Detect scroll direction
+      // Determine scroll direction.
       const deltaY = event.deltaY || -event.detail || event.wheelDelta;
-
       if (deltaY > 0 && currentIndex < mockFeed.length - 1) {
-        setCurrentIndex((prev) => prev + 1); // Scroll Down
+        setCurrentIndex((prev) => prev + 1);
       } else if (deltaY < 0 && currentIndex > 0) {
-        setCurrentIndex((prev) => prev - 1); // Scroll Up
+        setCurrentIndex((prev) => prev - 1);
       }
 
-      // Lock scrolling for 800ms to prevent multiple scrolls at once
+      // Lock scrolling for a moment.
       setTimeout(() => {
         isScrolling.current = false;
       }, 1000);
@@ -113,105 +232,32 @@ const PatientView = () => {
     if (container) {
       container.addEventListener("wheel", handleScroll, { passive: false });
     }
-
     return () => {
       if (container) {
         container.removeEventListener("wheel", handleScroll);
       }
     };
-  }, [currentIndex]);
+  }, [currentIndex, showQuiz]);
 
-  useEffect(() => {
-    if (currentIndex === 3) {
-      // Show quiz after scrolling to the fourth image
-      const questions = generateQuiz(mockFeed[currentIndex]);
-      setQuizQuestions(questions);
-      setShowQuiz(true);
-      setCurrentQuestionIndex(0); // Reset question index when quiz is shown
-    } else {
-      setShowQuiz(false);
-    }
-  }, [currentIndex]);
-
-  function generateQuiz(imageData) {
-    const questions = [];
-
-    // People Questions
-    imageData.tags.people.forEach((person) => {
-      questions.push({
-        question: `Who is this? ${person}?`,
-        correctAnswer: person,
-        options: shuffle([
-          person,
-          ...generateRandomOptions(imageData.tags.people, 2),
-        ]),
-      });
-    });
-
-    // Places Questions
-    imageData.tags.places.forEach((place) => {
-      questions.push({
-        question: `Where is this place?`,
-        correctAnswer: place,
-        options: shuffle([
-          place,
-          ...generateRandomOptions(imageData.tags.places, 3),
-        ]),
-      });
-    });
-
-    // Events Questions
-    imageData.tags.events.forEach((event) => {
-      questions.push({
-        question: `What event is this?`,
-        correctAnswer: event,
-        options: shuffle([
-          event,
-          ...generateRandomOptions(imageData.tags.events, 3),
-        ]),
-      });
-    });
-
-    return questions;
-  }
-
-  // Helper function to generate random options (avoiding duplicates)
-  function generateRandomOptions(tagArray, numOptions) {
-    const otherOptions = tagArray.filter((item) => !tagArray.includes(item));
-    const shuffled = [...otherOptions].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, numOptions);
-  }
-
-  function shuffle(array) {
-    let currentIndex = array.length,
-      randomIndex;
-
-    // While there remain elements to shuffle.
-    while (currentIndex != 0) {
-      // Pick a remaining element.
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-
-      // And swap it with the current element.
-      [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex],
-        array[currentIndex],
-      ];
-    }
-
-    return array;
-  }
-
-  const handleCloseQuiz = () => {
-    setShowQuiz(false);
+  // -------------------------------------------------------------------
+  // HANDLERS FOR THE QUIZ
+  // -------------------------------------------------------------------
+  const handleSelectAnswer = (option) => {
+    setSelectedAnswer(option);
+    setFeedback("");
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+  const handleSubmitAnswer = () => {
+    if (selectedAnswer === null) return;
+    if (selectedAnswer === quizQuestion.correctAnswer) {
+      // Mark the quiz for this group as answered.
+      const quizGroupIndex = currentIndex / 3 - 1;
+      setAnsweredQuizGroups((prev) => [...prev, quizGroupIndex]);
+      setShowQuiz(false);
+      setQuizQuestion(null);
+      setFeedback("Correct!");
     } else {
-      // Optionally, handle end of quiz (e.g., show results)
-      handleCloseQuiz();
+      setFeedback("Incorrect. Please try again.");
     }
   };
 
@@ -225,6 +271,10 @@ const PatientView = () => {
         position: "relative",
       }}
     >
+      {/* -----------------------------------------------------------------
+          IMAGE FEED: each image is absolutely positioned; only the
+          currentIndex image is visible.
+      ----------------------------------------------------------------- */}
       {mockFeed.map((item, index) => (
         <motion.div
           key={item.id}
@@ -277,27 +327,35 @@ const PatientView = () => {
         </motion.div>
       ))}
 
-      {/* Scroll Indicator */}
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 20,
-          left: "50%",
-          transform: "translateX(-50%)",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          color: "white",
-          padding: "8px 12px",
-          borderRadius: "20px",
-          display: currentIndex < mockFeed.length - 1 ? "flex" : "none",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="body2">Scroll Down</Typography>
-        <ArrowDownward sx={{ ml: 1, fontSize: "1rem" }} />
-      </Box>
+      {/* -----------------------------------------------------------------
+          SCROLL INDICATOR (only if not at the end and no quiz is active)
+      ----------------------------------------------------------------- */}
+      {!showQuiz && currentIndex < mockFeed.length - 1 && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            color: "white",
+            padding: "8px 12px",
+            borderRadius: "20px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="body2">Scroll Down</Typography>
+          <ArrowDownward sx={{ ml: 1, fontSize: "1rem" }} />
+        </Box>
+      )}
 
-      {/* Quiz Overlay */}
-      {showQuiz && (
+      {/* -----------------------------------------------------------------
+          QUIZ OVERLAY: appears when showQuiz is true.
+          The overlay is a semi-transparent dark layer with a centered Paper
+          card that shows the quiz question and options.
+      ----------------------------------------------------------------- */}
+      {showQuiz && quizQuestion && (
         <Box
           sx={{
             position: "absolute",
@@ -305,50 +363,60 @@ const PatientView = () => {
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.8)", // Semi-transparent background
+            background: "rgba(0, 0, 0, 0.85)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 10, // Ensure it's on top
+            zIndex: 20,
+            p: 2,
           }}
         >
-          <Typography variant="h5" color="white" mb={2}>
-            Quiz Time!
-          </Typography>
-
-          {/* Display current question */}
-          {quizQuestions.length > 0 && (
-            <Box key={currentQuestionIndex} mb={2}>
-              <Typography variant="subtitle1" color="white">
-                {quizQuestions[currentQuestionIndex].question}
-              </Typography>
-              {quizQuestions[currentQuestionIndex].options.map((option) => (
-                <Button key={option} variant="contained" sx={{ mr: 1 }}>
+          <Paper elevation={6} sx={{ p: 4, maxWidth: 400, textAlign: "center" }}>
+            <Typography variant="h5" gutterBottom>
+              Quiz Time!
+            </Typography>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              {quizQuestion.question}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                mb: 2,
+              }}
+            >
+              {quizQuestion.options.map((option) => (
+                <Button
+                  key={option}
+                  variant={
+                    selectedAnswer === option ? "contained" : "outlined"
+                  }
+                  onClick={() => handleSelectAnswer(option)}
+                >
                   {option}
                 </Button>
               ))}
             </Box>
-          )}
-
-          <Box>
+            {feedback && (
+              <Typography
+                variant="body2"
+                color={feedback === "Correct!" ? "green" : "red"}
+                sx={{ mb: 2 }}
+              >
+                {feedback}
+              </Typography>
+            )}
             <Button
               variant="contained"
-              onClick={handleNextQuestion}
-              disabled={quizQuestions.length === 0}
+              onClick={handleSubmitAnswer}
+              disabled={selectedAnswer === null}
+              fullWidth
             >
-              {currentQuestionIndex === quizQuestions.length - 1
-                ? "Finish Quiz"
-                : "Next Question"}
+              Submit Answer
             </Button>
-            <Button
-              variant="contained"
-              onClick={handleCloseQuiz}
-              sx={{ ml: 2 }}
-            >
-              Close Quiz
-            </Button>
-          </Box>
+          </Paper>
         </Box>
       )}
     </Box>
