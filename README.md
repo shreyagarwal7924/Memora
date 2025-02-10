@@ -1,4 +1,7 @@
 # MEMORA - An Alzheimer Remediation App
+
+An award-winning project at HackBeanPot 2025! 1st place for 'Leave No Trace - Social impact / sustainability'
+
 # Inspiration
 Our journey began with a simple belief: memories are worth holding onto. Inspired by my great-grandmother's experience with dementia, we envisioned a way to help families navigate the challenging road of memory loss. The hackathon's "Road Trip" theme perfectly captured our vision – using technology to revisit cherished moments and map out a personalized route through the past.
 
