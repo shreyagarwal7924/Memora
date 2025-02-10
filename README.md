@@ -10,15 +10,20 @@ Memora was built using React for the front end, leveraging Material UI for a use
 
 # Key features:
 Contextual-Cue Based Quizzes: Engaging quizzes generated from tagged photos, acting as 'signposts' along the memory 'road trip,' prompting users to recall specific details about people, places, and events.
+
 Scrollable Feed: A user-friendly, scrollable feed displaying photos, allowing for easy browsing and revisiting of cherished moments from the past.
+
 Content Uploading: Easy uploading of photos, allowing families to add new 'destinations' to their memory 'road trip.'
+
 Content Tagging: A simple and intuitive tagging system (People, Places, Events) to categorize photos and create rich contextual cues for memory retrieval, effectively mapping out the journey.
 # Challenges we ran into
 TAGGING PHOTOS :'(((
 Coming together on a shared vision. It took a while to get the idea from idea to design.
 # Accomplishments that we're proud of
 We successfully infiltrated Stetson East Dining Hall 😈
+
 Kaleb and Slava slept in an MIT frat house. That's kinda legendary. 💤🛌
+
 Seeing the TikTok-like scrollable feed come to life was amazing 📱
 # What we learned
 # Teamwork:
