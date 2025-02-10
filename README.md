@@ -18,7 +18,9 @@ Content Uploading: Easy uploading of photos, allowing families to add new 'desti
 Content Tagging: A simple and intuitive tagging system (People, Places, Events) to categorize photos and create rich contextual cues for memory retrieval, effectively mapping out the journey.
 # Challenges we ran into
 TAGGING PHOTOS :'(((
+
 Coming together on a shared vision. It took a while to get the idea from idea to design.
+
 # Accomplishments that we're proud of
 We successfully infiltrated Stetson East Dining Hall 😈
 
