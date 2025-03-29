@@ -89,24 +89,24 @@ const PatientView = () => {
       }
     };
   }, [currentIndex, images, quizOverlayVisible]);
-
-  // ---------------------------------
+  
   // Show quiz overlay after every 4 scrolls (if quiz for that image hasn't been completed)
-  // ---------------------------------
   useEffect(() => {
+    // Only shows the quiz if the current index is a multiple of 4, quiz data is available and this image hasn't already shown a quiz
     if (
       (currentIndex + 1) % 4 === 0 &&
       quizList.length > currentIndex &&
       !quizCompletedIndices.includes(currentIndex)
     ) {
+      // Grabs data for the current image to generate the quiz
       const currentQuizData = quizList[currentIndex];
       const correctAnswer = currentQuizData.place;
 
-      // Gather places from other images
+      // Gather 'place' values from other images to create wrong options
       const allOtherPlaces = quizList
         .filter((q, idx) => idx !== currentIndex)
         .map((q) => q.place);
-      // Get unique values (excluding the correct answer)
+      // Remove duplicates and exclude the correct answer)
       const uniqueOtherPlaces = Array.from(new Set(allOtherPlaces)).filter(
         (place) => place.trim() !== "" && place !== correctAnswer
       );
@@ -120,10 +120,11 @@ const PatientView = () => {
         }
         return arr.slice(0, count);
       };
-
+      
+      // Select 3 incorrect options, then combine with the correct answer
       const wrongOptions = getRandomElements(uniqueOtherPlaces, 3);
       let options = [correctAnswer, ...wrongOptions];
-      // Shuffle the options
+      // Shuffle all answer options
       for (let i = options.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
@@ -134,7 +135,7 @@ const PatientView = () => {
         options,
         correctAnswer,
       };
-
+       // Set the quiz question state to show in overlay
       setQuizQuestion(question);
       setQuizOverlayVisible(true);
     } else {
@@ -145,9 +146,7 @@ const PatientView = () => {
     }
   }, [currentIndex, quizList, quizCompletedIndices]);
 
-  // ---------------------------------
   // Quiz handlers
-  // ---------------------------------
   const handleSelectAnswer = (option) => {
     setSelectedAnswer(option);
   };
