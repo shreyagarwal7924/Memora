@@ -5,7 +5,7 @@ import { styled } from "@mui/system";
 import TopDashboard from "./TopDashboard"; // Import the new top dashboard
 import Dashboard from "./Dashboard";
 
-// Dummy profile data – replace with real data as needed.
+// Dummy profile data
 const profileInfo = {
   patientName: "Kaleb Cole",
   familyMembers: ["Shrey Agarwal", "Aditya Bisht","Yaroslav"],
@@ -20,7 +20,6 @@ const StyledImage = styled("img")({
 });
 
 const ProfileView = () => {
-  // Use a string for activeTab: "Profile" for account info, "Family" for recently uploaded pictures.
   const [activeTab, setActiveTab] = useState("Profile");
   const [images, setImages] = useState([]);
 

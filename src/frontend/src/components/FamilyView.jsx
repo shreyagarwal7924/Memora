@@ -8,9 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import Dashboard from './Dashboard';
 import axios from 'axios';
-// ------------------------------
+
 // TagPopup Component
-// ------------------------------
 const TagPopup = ({
   marker,
   selectedTagType,
@@ -71,9 +70,9 @@ const TagPopup = ({
   );
 };
 
-// ------------------------------
+
 // CustomMarker Component
-// ------------------------------
+
 const CustomMarker = ({ marker }) => {
   if (!marker) return null;
   return (
@@ -93,9 +92,9 @@ const CustomMarker = ({ marker }) => {
   );
 };
 
-// ------------------------------
+
 // FamilyView Component
-// ------------------------------
+
 const FamilyView = () => {
 //   const navigate = useNavigate();
 
@@ -116,9 +115,11 @@ const FamilyView = () => {
   // Ref for file input
   const fileInputRef = useRef(null);
 
-  // ------------------------------
+
+
   // 1. File Upload (Only once)
-  // ------------------------------
+
+
   const handleFileSelect = async (event) => {
     if (uploadComplete) return; // Prevent re-uploading
     const files = event.target.files;
@@ -143,9 +144,11 @@ const FamilyView = () => {
     event.target.value = ''; // Reset file input
   };
 
-  // ------------------------------
+
+
   // 2. Finalization (Place & Time)
-  // ------------------------------
+
+
   const handlePlaceChange = (index, newPlace) => {
     setUploadedPhotos((prevPhotos) => {
       const updatedPhotos = [...prevPhotos];
@@ -166,9 +169,11 @@ const FamilyView = () => {
     setFinalized(true);
   };
 
-  // ------------------------------
+
+
   // 3. Tagging Functions
-  // ------------------------------
+
+
   const handleEditTags = (index) => {
     setSelectedPhotoIndex(index);
     setIsTagging(true);
@@ -260,9 +265,11 @@ const handleFinishProcess = async () => {
     setSelectedPhotoIndex(null);
   };
 
-  // ------------------------------
+
+
   // Render Helper Functions
-  // ------------------------------
+
+
   const renderHiddenFileInput = () => (
     <input
       ref={fileInputRef}
