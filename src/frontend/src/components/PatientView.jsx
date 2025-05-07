@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Box, Typography, Chip } from "@mui/material";
 import { ArrowDownward } from "@mui/icons-material";
-import QuizOverlay from "./QuizOverlay"; // Adjust the import path as needed
+import QuizOverlay from "./QuizOverlay";
 
 const PatientView = () => {
   // State for images, current image index, and scrolling lock
