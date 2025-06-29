@@ -1,49 +1,117 @@
-# MEMORA - An Alzheimer Remediation App
+Memora – An Alzheimer Remediation App
 
-An award-winning project at HackBeanPot 2025! 1st place for 'Leave No Trace - Social impact / sustainability'
 
-# Inspiration
-Our journey began with a simple belief: memories are worth holding onto. Inspired by my great-grandmother's experience with dementia, we envisioned a way to help families navigate the challenging road of memory loss. The hackathon's "Road Trip" theme perfectly captured our vision – using technology to revisit cherished moments and map out a personalized route through the past.
+🏆 HackBeanPot 2025 – 1st Place (“Leave No Trace – Social Impact / Sustainability”)
 
-# What it does
-Memora is a mobile app that acts as a personalized road map through memories, designed for individuals in the early to moderate stages of dementia and their families. Using personal family photos – snapshots from life's journey – Memora stimulates memory recall through engaging quizzes and a user-friendly interface.
+Memories are worth holding on to. Memora helps families navigate dementia by turning treasured photos into engaging, memory‑strengthening games.
 
-# How we built it
-Memora was built using React for the front end, leveraging Material UI for a user-friendly interface – designed to be easy to navigate, like a well-planned road trip. Supabase provided the secure data storage we needed to keep our memories safe. Key technologies included Framer Motion for engaging animations, Lucide React for beautiful icons, and React Draggable and React Image Marker for intuitive photo tagging.
 
-# Key features:
-Contextual-Cue Based Quizzes: Engaging quizzes generated from tagged photos, acting as 'signposts' along the memory 'road trip,' prompting users to recall specific details about people, places, and events.
 
-Scrollable Feed: A user-friendly, scrollable feed displaying photos, allowing for easy browsing and revisiting of cherished moments from the past.
+🚀 Inspiration
 
-Content Uploading: Easy uploading of photos, allowing families to add new 'destinations' to their memory 'road trip.'
+My great‑grandmother’s struggle with dementia showed us how fragile memories can be. When HackBeanPot announced a “Road Trip” theme, we imagined using technology to let users re‑visit the landmarks of their lives—one photo at a time.
 
-Content Tagging: A simple and intuitive tagging system (People, Places, Events) to categorize photos and create rich contextual cues for memory retrieval, effectively mapping out the journey.
-# Challenges we ran into
-TAGGING PHOTOS :'(((
 
-Coming together on a shared vision. It took a while to get the idea from idea to design.
 
-# Accomplishments that we're proud of
-We successfully infiltrated Stetson East Dining Hall 😈
+📱 What It Does
 
-Kaleb and Slava slept in an MIT frat house. That's kinda legendary. 💤🛌
+Memora is a mobile app that acts like a personalized road map through a user’s past:
 
-Seeing the TikTok-like scrollable feed come to life was amazing 📱
-# What we learned
-# Teamwork:
-Creating a detailed product brief together was essential. It provided a shared vision and roadmap for our project, ensuring effective collaboration throughout the development process.
-Our late-night brainstorming sessions, especially on Friday, were incredibly productive. We learned to leverage each team member's strengths, challenge assumptions constructively, and arrive at innovative solutions.
-# Technical:
-Using AI mockup tools like Bolt was a valuable experience. We discovered how quickly and easily we could translate our ideas into visual representations, facilitating design iterations and improving communication within the team."
-Working with our tech stack, while sometimes challenging due to rustiness in certain areas, reinforced our understanding of core web development principles and highlighted areas for future learning.
-# Impact:
-Tackling a real-world problem like supporting individuals with dementia gave our work a deeper purpose. It motivated us to consider the real-life impact of our design decisions and the potential to make a positive difference."
-The practice of constantly asking 'Why?' when developing features became ingrained in our process. This user-centric approach ensured that every element of Memora was designed with the needs of our target audience in mind.
-What's next for Memora
-# Features
-Family Account System: Connecting families through shared memories and collaborative caregiving. Photo Album Integration: Making it even easier to share and cherish life's precious moments.
-Notification System: Ensuring consistent engagement and maximizing the benefits of memory reinforcement.
-ML Algorithms for Personalized Photos: Tailoring the experience to individual needs and preferences for optimal memory support.
-Spaced Repetition Algorithm: Strengthening memories over time through personalized recall schedules.
-Progress Tracking: Providing valuable insights into memory recall progress, empowering both users and caregivers.
+Upload & Tag Photos — Add snapshots and tag People, Places, and Events.
+
+AI‑Generated Quizzes — Contextual cues prompt the user to recall names, locations, and stories.
+
+TikTok‑style Feed — An infinite scroll of memories keeps engagement fun and familiar.
+
+
+
+🛠 Tech Stack
+
+Layer
+
+Tech
+
+Front‑end
+
+React • Material UI • Framer Motion • Lucide React • React Draggable
+
+Back‑end
+
+Supabase (PostgreSQL + Storage)
+
+
+
+✨ Key Features
+
+Contextual‑Cue Quizzes – AI builds questions from tagged photos, acting as signposts on a memory road trip.
+
+Scrollable Feed – A smooth, thumb‑friendly timeline for effortless browsing.
+
+Intuitive Tagging – Drag‑and‑drop markers powered by React Image Marker.
+
+
+
+🏆 Accomplishments We’re Proud Of
+
+Built a working demo in < 36 hours.
+
+Shipped a pixel‑perfect, swipe‑able feed.
+
+(And yes) successfully infiltrated Stetson East Dining Hall 😈.
+
+
+
+🧩 Challenges
+
+Challenge
+
+Take‑away
+
+Photo Tagging UX
+
+Iterated 3 times before finding the right drag‑and‑drop flow
+
+Aligning a shared vision
+
+A detailed product brief became our single source of truth
+
+
+
+📚 What We Learned
+
+Teamwork
+
+Late‑night whiteboarding unlocked our best ideas.
+
+A shared “why” kept us user‑focused.
+
+Technical
+
+AI mockup tools like Bolt accelerated design iterations.
+
+Brushing up on React hooks & Supabase auth under time pressure.
+
+Impact
+
+Designing for real users with dementia pushed us to value clarity over flash.
+
+🗺 Roadmap / What’s Next
+
+Family Accounts – Collaborative caregiving & shared photo libraries.
+
+Photo‑Album Import – Seamless Google Photos / iCloud integration.
+
+Notification System – Gentle prompts for spaced‑repetition recall.
+
+ML‑Based Personalization – Curate photos by emotional relevance.
+
+Progress Tracking Dashboards – Insight for both users & caregivers.
+
+
+
+
+
+
+Made with ❤️ by Shrey · Aditya · Kaleb · Slava at HackBeanPot 2025.
+
+
